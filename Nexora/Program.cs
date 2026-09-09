@@ -16,6 +16,11 @@ builder.Services.AddDbContext<NexoraDbContext>(options =>
 
 var app = builder.Build();
 
+var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<NexoraDbContext>();
+context.Database.EnsureDeleted();
+context.Database.EnsureCreated();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

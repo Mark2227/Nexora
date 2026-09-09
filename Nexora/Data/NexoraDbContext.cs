@@ -20,6 +20,8 @@ namespace Nexora.Api.Data
         {
             modelBuilder.ApplyConfiguration(new TeacherConfiguration());
             modelBuilder.ApplyConfiguration(new CourseConfiguration());
+            modelBuilder.ApplyConfiguration(new StudentConfiguration());
+            modelBuilder.ApplyConfiguration(new EnrollmentConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }
