@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nexora.Api.Data;
+using Nexora.Api.Dtos.Teachers;
 using Nexora.Api.Models;
 
 namespace Nexora.Api.Controllers;
@@ -53,8 +54,12 @@ public class TeachersController : ControllerBase
 
     // POST api/teachers
     [HttpPost]
-    public async Task<ActionResult<Teacher>> Create(Teacher teacher)
+    public async Task<ActionResult<Teacher>> Create(CreateTeacherDto dto)
     {
+        var teacher = new Teacher
+        {
+            Name = dto.Name
+        };
         _context.Teachers.Add(teacher);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = teacher.Id }, teacher);
@@ -62,14 +67,14 @@ public class TeachersController : ControllerBase
 
     // PUT api/teachers/1
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, Teacher teacher)
+    public async Task<IActionResult> Update(int id, UpdateTeacherDto dto)
     {
         var existingTeacher = await _context.Teachers.FindAsync(id);
         if (existingTeacher is null)
         {
             return NotFound();
         }
-        existingTeacher.Name = teacher.Name;
+        existingTeacher.Name = dto.Name;
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -84,8 +89,16 @@ public class TeachersController : ControllerBase
         {
             return NotFound();
         }
+
+        var hasCourses = await _context.Courses.AnyAsync(c => c.TeacherId == id);
+        if (hasCourses)
+        {
+            return Conflict("Teacher still has courses. Reassign or delete them first.");
+        }
+
         _context.Teachers.Remove(teacher);
         await _context.SaveChangesAsync();
+
         return NoContent();
     }
 }

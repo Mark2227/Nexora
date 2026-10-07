@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Nexora.Api.Data;
 using Nexora.Api.Models;
-using Nexora.Api.Dtos;
+using Nexora.Api.Dtos.Enrollments;
 
 namespace Nexora.Api.Controllers;
 
