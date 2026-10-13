@@ -18,21 +18,37 @@ public class TeachersController : ControllerBase
 
     // GET api/teachers
     [HttpGet]
-    public async Task<ActionResult<List<Teacher>>> GetAll()
+    public async Task<ActionResult<List<TeacherDto>>> GetAll()
     {
-        var teachers = await _context.Teachers.ToListAsync();
+        var teachers = await _context.Teachers
+            .Select(t => new TeacherDto
+            {
+                Id = t.Id,
+                Name = t.Name
+            })
+            .ToListAsync();
+
         return Ok(teachers);
     }
 
     // GET api/teachers/1
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Teacher>> GetById(int id)
+    public async Task<ActionResult<TeacherDto>> GetById(int id)
     {
-        var teacher = await _context.Teachers.FindAsync(id);
+        var teacher = await _context.Teachers
+            .Where(t => t.Id == id)
+            .Select(t => new TeacherDto
+            {
+                Id = t.Id,
+                Name = t.Name
+            })
+            .FirstOrDefaultAsync();
+
         if (teacher is null)
         {
             return NotFound();
         }
+
         return Ok(teacher);
     }
 
@@ -54,15 +70,23 @@ public class TeachersController : ControllerBase
 
     // POST api/teachers
     [HttpPost]
-    public async Task<ActionResult<Teacher>> Create(CreateTeacherDto dto)
+    public async Task<ActionResult<TeacherDto>> Create(CreateTeacherDto dto)
     {
         var teacher = new Teacher
         {
             Name = dto.Name
         };
+
         _context.Teachers.Add(teacher);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = teacher.Id }, teacher);
+
+        var result = new TeacherDto
+        {
+            Id = teacher.Id,
+            Name = teacher.Name
+        };
+
+        return CreatedAtAction(nameof(GetById), new { id = teacher.Id }, result);
     }
 
     // PUT api/teachers/1
