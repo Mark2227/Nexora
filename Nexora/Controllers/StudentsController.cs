@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Nexora.Api.Data;
 using Nexora.Api.Models;
+using Nexora.Api.Dtos.Students;
 
 namespace Nexora.Api.Controllers;
 
@@ -18,17 +19,29 @@ public class StudentsController : ControllerBase
 
     // GET api/students
     [HttpGet]
-    public async Task<ActionResult<List<Student>>> GetAll()
+    public async Task<ActionResult<List<StudentDto>>> GetAll()
     {
-        var students = await _context.Students.ToListAsync();
+        var students = await _context.Students
+            .Select(s => new StudentDto
+            {
+                Id = s.Id,
+                Name = s.Name
+            })
+            .ToListAsync();
         return Ok(students);
     }
-
     // GET api/students/1
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Student>> GetById(int id)
+    public async Task<ActionResult<StudentDto>> GetById(int id)
     {
-        var student = await _context.Students.FindAsync(id);
+        var student = await _context.Students
+            .Where(s => s.Id == id)
+            .Select(s => new StudentDto
+            {
+                Id = s.Id,
+                Name = s.Name
+            })
+            .FirstOrDefaultAsync();
 
         if (student is null)
         {
@@ -56,17 +69,27 @@ public class StudentsController : ControllerBase
 
     // POST api/students
     [HttpPost]
-    public async Task<ActionResult<Student>> Create(Student student)
+    public async Task<ActionResult<StudentDto>> Create(CreateStudentDto dto)
     {
+        var student = new Student
+        {
+            Name = dto.Name
+        };
         _context.Students.Add(student);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetById), new { id = student.Id }, student);
+        var result = new StudentDto
+        {
+            Id = student.Id,
+            Name = student.Name
+        };
+
+        return CreatedAtAction(nameof(GetById), new { id = student.Id }, result);
     }
 
     // PUT api/students/1
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, Student input)
+    public async Task<IActionResult> Update(int id, UpdateStudentDto dto)
     {
         var student = await _context.Students.FindAsync(id);
 
@@ -75,7 +98,7 @@ public class StudentsController : ControllerBase
             return NotFound();
         }
 
-        student.Name = input.Name;
+        student.Name = dto.Name;
         await _context.SaveChangesAsync();
 
         return NoContent();
